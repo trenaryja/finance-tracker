@@ -5,9 +5,10 @@ import {
 	IntegratedSelection,
 	IntegratedSorting,
 	SelectionState,
-	SortingState
+	SortingState,
+	EditingState
 } from '@devexpress/dx-react-grid';
-import { Grid, Table, TableFilterRow, TableHeaderRow, TableSelection } from '@devexpress/dx-react-grid-material-ui';
+import { Grid, Table, TableFilterRow, TableHeaderRow, TableSelection, TableEditRow, TableEditColumn } from '@devexpress/dx-react-grid-material-ui';
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
@@ -84,19 +85,30 @@ export default class TransactionGrid extends Component {
 		const { state } = props;
 		return (
 			<Paper>
-				<Grid rows={state.displayData} columns={columns}>
+				<Grid rows={state.data} columns={columns}>
 					<SelectionState selection={state.selection} onSelectionChange={props.onSelectionChange} />
 					<IntegratedSelection />
 					<SortingState sorting={state.sorting} onSortingChange={props.onSortingChange} />
 					<IntegratedSorting />
 					<FilteringState filters={state.filters} onFiltersChange={props.onFiltersChange} />
 					<IntegratedFiltering columnExtensions={filteringColumnExtensions} />
+					<EditingState
+						editingRowIds={state.editingRowIds}
+						onEditingRowIdsChange={props.onEditingRowIdsChange}
+						rowChanges={state.rowChanges}
+						onRowChangesChange={props.onRowChangesChange}
+						addedRows={state.addedRows}
+						onAddedRowsChange={props.onAddedRowsChange}
+						onCommitChanges={props.onCommitChanges}
+					/>
 					<CurrencyTypeProvider for={currencyColumns} availableFilterOperations={filterOperations} />
 					<DateTypeProvider for={dateColumns} availableFilterOperations={filterOperations} />
 					<Table tableComponent={TableComponent} columnExtensions={tableColumnExtensions} />
 					{/* <TableColumnResizing defaultColumnWidths={defaultColumnWidths} /> */}
 					<TableHeaderRow showSortingControls />
 					<TableFilterRow showFilterSelector iconComponent={FilterIcon} messages={{ between: 'Between' }} />
+					<TableEditRow />
+					<TableEditColumn showAddCommand={!state.addedRows.length} showEditCommand showDeleteCommand />
 					<TableSelection showSelectAll />
 				</Grid>
 			</Paper>

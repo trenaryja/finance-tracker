@@ -11,19 +11,20 @@ const theme = {
 	typography: { useNextVariants: true }
 };
 
-const data = Transaction.generateDummyData(10);
+const data = Transaction.generateDummyData(3);
 
 export default class App extends Component {
 	state = {
 		data: data,
-		displayData: data,
 		selection: [],
 		filters: [],
-		sorting: [{ columnName: 'transactionDate', direction: 'desc' }, { columnName: 'amount', direction: 'desc' }]
+		sorting: [{ columnName: 'transactionDate', direction: 'desc' }, { columnName: 'amount', direction: 'desc' }],
+		editingRowIds: [],
+		addedRows: [],
+		rowChanges: {}
 	};
 
 	handleSelectionChange = (selection) => {
-		console.log(selection);
 		this.setState({ selection });
 	};
 
@@ -35,18 +36,13 @@ export default class App extends Component {
 		this.setState({ filters });
 	};
 
-	handleDisplayDataChange = (displayData) => {
-		this.setState(displayData);
-	};
-
 	handleAccountFilterClick = (account) => {
-		const displayData = this.state.data.filter((x) => x.account === account);
-		this.setState({ displayData });
+		this.setState({ filters: [{ columnName: 'account', value: account, operation: 'equals' }] });
 	};
 
 	handleFilterResetClick = () => {
 		this.setState({
-			displayData: this.state.data,
+			data: data,
 			filters: [],
 			selection: [],
 			sorting: []
@@ -63,6 +59,33 @@ export default class App extends Component {
 
 	handleUpload = () => {
 		//TODO: Parse csv and create transactions from each row. Diff with current transactions and new values
+	};
+
+	handleEditingRowIdsChange = (editingRowIds) => {
+		this.setState({ editingRowIds });
+	};
+
+	handleRowChangesChange = (rowChanges) => {
+		this.setState({ rowChanges });
+	};
+
+	handleAddedRowsChange = (addedRows) => {
+		this.setState({ addedRows });
+	};
+
+	handleCommitChanges = ({ added, changed, deleted }) => {
+		let { data } = this.state;
+		if (added) {
+			data = [...data, ...added.map((row) => ({ ...Transaction.generateRandomTransaction(), ...row }))];
+		}
+		if (changed) {
+			data = data.map((row, index) => (changed[index] ? { ...row, ...changed[index] } : row));
+		}
+		if (deleted) {
+			const deletedSet = new Set(deleted);
+			data = data.filter((row, index) => !deletedSet.has(index));
+		}
+		this.setState({ data });
 	};
 
 	render() {
@@ -83,6 +106,10 @@ export default class App extends Component {
 					onSortingChange={this.handleSortingChange}
 					onFiltersChange={this.handleFiltersChange}
 					onDisplayDataChange={this.handleDisplayDataChange}
+					onEditingRowIdsChange={this.handleEditingRowIdsChange}
+					onRowChangesChange={this.handleRowChangesChange}
+					onAddedRowsChange={this.handleAddedRowsChange}
+					onCommitChanges={this.handleCommitChanges}
 				/>
 			</MuiThemeProvider>
 		);

@@ -7,11 +7,11 @@ import MenuPanel from './components/menuPanel';
 import Transaction from './models/transaction';
 
 const theme = {
-	palette: { type: 'dark', primary: colors.grey, secondary: colors.deepPurple },
+	palette: { type: 'dark', primary: colors.grey, secondary: colors.blue },
 	typography: { useNextVariants: true }
 };
 
-const data = Transaction.generateDummyData(3);
+const data = Transaction.generateDummyData(50);
 
 export default class App extends Component {
 	state = {
@@ -116,7 +116,13 @@ export default class App extends Component {
 	}
 }
 
-//TODO: Update state Display Data when filtering
-//TODO: Update state Display Data when sorting
 //TODO: Add Scrolling/Virtualization
-//TODO: Format Flags column as buttons with actions
+//TODO: Format Edit forms for every column
+//TODO: Move filter icon to right side for Account and Description columns
+//TODO: Add Reporting Modal Popup for selected Transactions
+//TODO: Increase Font Size of Column Headers
+//TODO: Add Filter options to Flags Column
+//TODO: Highlight potential duplicate Rows
+//TODO: Add Tooltip to Description column for full Description
+//TODO: Convert buttons to icons
+//TODO: Select All only applies to visible

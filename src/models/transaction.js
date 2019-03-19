@@ -8,7 +8,7 @@ export default class Transaction {
 	}
 
 	static flagOptions() {
-		return ['Hold', 'Paid', 'Rachel', 'Justin'];
+		return ['Hold', 'Paid', 'Justin', 'Rachel'];
 	}
 
 	static generateRandomTransaction() {

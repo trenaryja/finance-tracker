@@ -8,13 +8,24 @@ import {
 	SortingState,
 	EditingState
 } from '@devexpress/dx-react-grid';
-import { Grid, Table, TableFilterRow, TableHeaderRow, TableSelection, TableEditRow, TableEditColumn } from '@devexpress/dx-react-grid-material-ui';
+import {
+	Grid,
+	Table,
+	TableFilterRow,
+	TableHeaderRow,
+	TableSelection,
+	TableEditRow,
+	TableEditColumn,
+	VirtualTable
+} from '@devexpress/dx-react-grid-material-ui';
 import Paper from '@material-ui/core/Paper';
+import Chip from '@material-ui/core/Chip';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
 import React, { Component } from 'react';
 import { formatAsCurrency } from '../utils';
 import CompareArrows from '@material-ui/icons/CompareArrows';
+import Transaction from '../models/transaction';
 
 const styles = () => ({ tableStriped: { '& tbody tr:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.08)' } } });
 const TableComponent = withStyles(styles, { name: 'TableComponent' })(({ classes, ...restProps }) => (
@@ -23,6 +34,26 @@ const TableComponent = withStyles(styles, { name: 'TableComponent' })(({ classes
 
 const CurrencyTypeProvider = (props) => <DataTypeProvider formatterComponent={({ value }) => formatAsCurrency(value)} {...props} />;
 const DateTypeProvider = (props) => <DataTypeProvider formatterComponent={({ value }) => moment(value).format('YYYY.MM.DD')} {...props} />;
+const FlagTypeProvider = (props) => (
+	<DataTypeProvider
+		formatterComponent={({ value: flags }) => {
+			return (
+				<div>
+					{Transaction.flagOptions().map((flag) => (
+						<Chip
+							// style={{ color: 'white' }}
+							key={flag}
+							label={flag}
+							color="secondary"
+							variant={flags.includes(flag) ? 'default' : 'outlined'}
+						/>
+					))}
+				</div>
+			);
+		}}
+		{...props}
+	/>
+);
 
 const FilterIcon = ({ type, ...restProps }) => {
 	if (type === 'between') return <CompareArrows {...restProps} />;
@@ -53,31 +84,18 @@ const dateFilter = (value, filter, row) => {
 
 const columns = [
 	{ title: 'Account', name: 'account' },
-	{ title: 'Transaction Date', name: 'transactionDate' },
-	{ title: 'Post Date', name: 'postDate' },
 	{ title: 'Description', name: 'description' },
+	{ title: 'Transaction Date', name: 'transactionDate' },
 	{ title: 'Amount', name: 'amount' },
 	{ title: 'Flags', name: 'flags' }
 ];
-const tableColumnExtensions = [{ columnName: 'amount', align: 'right' }, { columnName: 'flags', align: 'right' }];
-const dateColumns = ['transactionDate', 'postDate'];
-const currencyColumns = ['amount'];
-const filterOperations = ['between', 'equal', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual'];
-const filteringColumnExtensions = [
-	{ columnName: 'amount', predicate: amountFilter },
-	{ columnName: 'transactionDate', predicate: dateFilter },
-	{ columnName: 'postDate', predicate: dateFilter }
+const tableColumnExtensions = [
+	{ columnName: 'amount', align: 'right' },
+	{ columnName: 'flags', align: 'right' },
+	{ columnName: 'transactionDate', align: 'right' }
 ];
-
-// TODO: Add Column Resizing
-// const defaultColumnWidths = [
-// 	{ columnName: 'account', width: 100 },
-// 	{ columnName: 'transactionDate', width: 100 },
-// 	{ columnName: 'postDate', width: 100 },
-// 	{ columnName: 'description', width: 700 },
-// 	{ columnName: 'amount', width: 200 },
-// 	{ columnName: 'flags', width: 300 }
-// ];
+const filterOperations = ['between', 'equal', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual'];
+const filteringColumnExtensions = [{ columnName: 'amount', predicate: amountFilter }, { columnName: 'transactionDate', predicate: dateFilter }];
 
 export default class TransactionGrid extends Component {
 	render() {
@@ -101,14 +119,14 @@ export default class TransactionGrid extends Component {
 						onAddedRowsChange={props.onAddedRowsChange}
 						onCommitChanges={props.onCommitChanges}
 					/>
-					<CurrencyTypeProvider for={currencyColumns} availableFilterOperations={filterOperations} />
-					<DateTypeProvider for={dateColumns} availableFilterOperations={filterOperations} />
-					<Table tableComponent={TableComponent} columnExtensions={tableColumnExtensions} />
-					{/* <TableColumnResizing defaultColumnWidths={defaultColumnWidths} /> */}
+					<CurrencyTypeProvider for={['amount']} availableFilterOperations={filterOperations} />
+					<DateTypeProvider for={['transactionDate']} availableFilterOperations={filterOperations} />
+					<FlagTypeProvider for={['flags']} />
+					<VirtualTable height="auto" tableComponent={TableComponent} columnExtensions={tableColumnExtensions} />
 					<TableHeaderRow showSortingControls />
 					<TableFilterRow showFilterSelector iconComponent={FilterIcon} messages={{ between: 'Between' }} />
 					<TableEditRow />
-					<TableEditColumn showAddCommand={!state.addedRows.length} showEditCommand showDeleteCommand />
+					<TableEditColumn showAddCommand showEditCommand showDeleteCommand />
 					<TableSelection showSelectAll />
 				</Grid>
 			</Paper>

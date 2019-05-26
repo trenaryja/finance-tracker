@@ -1,7 +1,6 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import * as colors from '@material-ui/core/colors';
-import './App.css';
 import TransactionGrid from './components/transactionGrid';
 import MenuPanel from './components/menuPanel';
 import Transaction from './models/transaction';
@@ -11,110 +10,64 @@ const theme = {
 	typography: { useNextVariants: true }
 };
 
-const data = Transaction.generateDummyData(50);
+const defaultSorting = [{ columnName: 'transactionDate', direction: 'desc' }, { columnName: 'amount', direction: 'desc' }];
 
-export default class App extends Component {
-	state = {
-		data: data,
-		selection: [],
-		filters: [],
-		sorting: [{ columnName: 'transactionDate', direction: 'desc' }, { columnName: 'amount', direction: 'desc' }],
-		editingRowIds: [],
-		addedRows: [],
-		rowChanges: {}
+export default () => {
+	const [data, setData] = useState(Transaction.generateDummyData(100));
+	const [selection, setSelection] = useState([]);
+	const [filters, setFilters] = useState([]);
+	const [sorting, setSorting] = useState(defaultSorting);
+
+	const handleSelectionChange = selection => setSelection(selection);
+
+	const handleFiltersChange = filters => {
+		setFilters(filters);
+		setSelection([]);
+	};
+	const handleSortingChange = sorting => setSorting(sorting);
+
+	const handleFilterReset = () => {
+		setSelection([]);
+		setFilters([]);
+		setSorting(defaultSorting);
 	};
 
-	handleSelectionChange = (selection) => {
-		this.setState({ selection });
-	};
+	const handleDownload = () => {}; //TODO: Export displayData to csv/excel using filefy
 
-	handleSortingChange = (sorting) => {
-		this.setState({ sorting });
-	};
+	const handleFlagSelected = () => {}; //TODO: Display Modal for applying flags to all selected transactions
 
-	handleFiltersChange = (filters) => {
-		this.setState({ filters });
-	};
+	const handleUpload = () => {}; //TODO: Parse csv and create transactions from each row. Diff with current transactions and new values
 
-	handleAccountFilterClick = (account) => {
-		this.setState({ filters: [{ columnName: 'account', value: account, operation: 'equals' }] });
-	};
-
-	handleFilterResetClick = () => {
-		this.setState({
-			data: data,
-			filters: [],
-			selection: [],
-			sorting: []
-		});
-	};
-
-	handleDownloadCLick = () => {
-		//TODO: Export displayData to csv/excel using filefy
-	};
-
-	handleFlagSelected = () => {
-		//TODO: Display Modal for applying flags to all selected transactions
-	};
-
-	handleUpload = () => {
-		//TODO: Parse csv and create transactions from each row. Diff with current transactions and new values
-	};
-
-	handleEditingRowIdsChange = (editingRowIds) => {
-		this.setState({ editingRowIds });
-	};
-
-	handleRowChangesChange = (rowChanges) => {
-		this.setState({ rowChanges });
-	};
-
-	handleAddedRowsChange = (addedRows) => {
-		this.setState({ addedRows });
-	};
-
-	handleCommitChanges = ({ added, changed, deleted }) => {
-		let { data } = this.state;
-		if (added) {
-			data = [...data, ...added.map((row) => ({ ...Transaction.generateRandomTransaction(), ...row }))];
-		}
-		if (changed) {
-			data = data.map((row, index) => (changed[index] ? { ...row, ...changed[index] } : row));
-		}
-		if (deleted) {
-			const deletedSet = new Set(deleted);
-			data = data.filter((row, index) => !deletedSet.has(index));
-		}
-		this.setState({ data });
-	};
-
-	render() {
-		const { state } = this;
-
-		return (
-			<MuiThemeProvider theme={createMuiTheme(theme)}>
+	return (
+		<MuiThemeProvider theme={createMuiTheme(theme)}>
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateRows: '1fr 10fr',
+					gridGap: '10px',
+					height: '98vh'
+				}}
+			>
 				<MenuPanel
-					state={state}
-					onAccountFilterClick={this.handleAccountFilterClick}
-					onFilterResetClick={this.handleFilterResetClick}
-					onFlagSelectedClick={this.handleFlagSelected}
+					data={data}
+					onFilterReset={handleFilterReset}
+					onFlagSelected={handleFlagSelected}
+					onDownload={handleDownload}
+					onUpload={handleUpload}
 				/>
-				<br />
 				<TransactionGrid
-					state={state}
-					onSelectionChange={this.handleSelectionChange}
-					onSortingChange={this.handleSortingChange}
-					onFiltersChange={this.handleFiltersChange}
-					onDisplayDataChange={this.handleDisplayDataChange}
-					onEditingRowIdsChange={this.handleEditingRowIdsChange}
-					onRowChangesChange={this.handleRowChangesChange}
-					onAddedRowsChange={this.handleAddedRowsChange}
-					onCommitChanges={this.handleCommitChanges}
+					data={data}
+					selection={selection}
+					filters={filters}
+					sorting={sorting}
+					onSelectionChange={handleSelectionChange}
+					onSortingChange={handleSortingChange}
+					onFiltersChange={handleFiltersChange}
 				/>
-			</MuiThemeProvider>
-		);
-	}
-}
+			</div>
+		</MuiThemeProvider>
+	);
+};
 
 //TODO: Add Scrolling/Virtualization
 //TODO: Format Edit forms for every column

@@ -1,17 +1,15 @@
 import React, { Fragment } from 'react';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 
-export default class UploadButton extends Button {
-	render() {
-		return (
-			<Fragment>
-				<input disabled={this.props.disabled} style={{ display: 'none' }} accept={this.props.accept} id={this.props.id} type="file" />
-				<label htmlFor={this.props.id}>
-					<Button {...this.props} component="span">
-						{this.props.children}
-					</Button>
-				</label>
-			</Fragment>
-		);
-	}
-}
+export default props => {
+	return (
+		<Fragment>
+			<input disabled={props.disabled} style={{ display: 'none' }} accept={props.accept} id={props.id} type="file" />
+			<label htmlFor={props.id}>
+				<IconButton {...props} component="span">
+					{props.children}
+				</IconButton>
+			</label>
+		</Fragment>
+	);
+};

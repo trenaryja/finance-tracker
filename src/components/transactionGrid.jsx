@@ -8,11 +8,10 @@ import {
 	SortingState
 } from '@devexpress/dx-react-grid';
 import { Grid, VirtualTable, TableFilterRow, TableHeaderRow, TableSelection } from '@devexpress/dx-react-grid-material-ui';
-import Paper from '@material-ui/core/Paper';
 import Chip from '@material-ui/core/Chip';
 import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
-import React from 'react';
+import React, { Fragment } from 'react';
 import { formatAsCurrency } from '../utils';
 import CompareArrows from '@material-ui/icons/CompareArrows';
 import Transaction from '../models/transaction';
@@ -31,11 +30,11 @@ const FlagTypeProvider = props => (
 	<DataTypeProvider
 		formatterComponent={({ value: flags }) => {
 			return (
-				<div>
+				<Fragment>
 					{Transaction.flagOptions().map(flag => (
-						<Chip key={flag} label={flag} color="secondary" variant={flags.includes(flag) ? 'default' : 'outlined'} />
+						<Chip key={flag} label={flag.charAt(0)} color="secondary" variant={flags.includes(flag) ? 'default' : 'outlined'} />
 					))}
-				</div>
+				</Fragment>
 			);
 		}}
 		{...props}
@@ -95,26 +94,24 @@ const filteringColumnExtensions = [
 
 export default props => {
 	return (
-		<Paper style={{ height: '100%', width: '100%' }}>
-			<Grid rows={props.data} columns={columns} rootComponent={rootComponent}>
-				<CurrencyTypeProvider for={['amount']} availableFilterOperations={filterOperations} />
-				<DateTypeProvider for={['transactionDate']} availableFilterOperations={filterOperations} />
-				<FlagTypeProvider for={['flags']} />
+		<Grid rows={props.data} columns={columns} rootComponent={rootComponent}>
+			<CurrencyTypeProvider for={['amount']} availableFilterOperations={filterOperations} />
+			<DateTypeProvider for={['transactionDate']} availableFilterOperations={filterOperations} />
+			<FlagTypeProvider for={['flags']} />
 
-				<SelectionState selection={props.selection} onSelectionChange={props.onSelectionChange} />
-				<IntegratedSelection />
+			<SelectionState selection={props.selection} onSelectionChange={props.onSelectionChange} />
+			<IntegratedSelection />
 
-				<SortingState sorting={props.sorting} onSortingChange={props.onSortingChange} />
-				<IntegratedSorting />
+			<SortingState sorting={props.sorting} onSortingChange={props.onSortingChange} />
+			<IntegratedSorting />
 
-				<FilteringState filters={props.filters} onFiltersChange={props.onFiltersChange} />
-				<IntegratedFiltering columnExtensions={filteringColumnExtensions} />
+			<FilteringState filters={props.filters} onFiltersChange={props.onFiltersChange} />
+			<IntegratedFiltering columnExtensions={filteringColumnExtensions} />
 
-				<VirtualTable tableComponent={tableComponent} columnExtensions={tableColumnExtensions} />
-				<TableHeaderRow showSortingControls />
-				<TableFilterRow showFilterSelector iconComponent={FilterIcon} messages={{ between: 'Between' }} />
-				<TableSelection showSelectAll />
-			</Grid>
-		</Paper>
+			<VirtualTable tableComponent={tableComponent} columnExtensions={tableColumnExtensions} />
+			<TableHeaderRow showSortingControls />
+			<TableFilterRow showFilterSelector iconComponent={FilterIcon} messages={{ between: 'Between' }} />
+			<TableSelection showSelectAll />
+		</Grid>
 	);
 };

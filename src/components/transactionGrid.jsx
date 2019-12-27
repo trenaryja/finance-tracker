@@ -1,56 +1,35 @@
-import {
-	DataTypeProvider,
-	FilteringState,
-	IntegratedFiltering,
-	IntegratedSelection,
-	IntegratedSorting,
-	SelectionState,
-	SortingState
-} from '@devexpress/dx-react-grid';
-import { Grid, VirtualTable, TableFilterRow, TableHeaderRow, TableSelection } from '@devexpress/dx-react-grid-material-ui';
-import Chip from '@material-ui/core/Chip';
-import { withStyles } from '@material-ui/core/styles';
-import moment from 'moment';
-import React, { Fragment } from 'react';
-import { formatAsCurrency } from '../utils';
-import CompareArrows from '@material-ui/icons/CompareArrows';
-import Transaction from '../models/transaction';
+import { FilteringState, IntegratedFiltering, IntegratedSelection, IntegratedSorting, SelectionState, SortingState } from "@devexpress/dx-react-grid";
+import { Template, TemplatePlaceholder, TemplateConnector } from "@devexpress/dx-react-core";
+import { Grid, Table, TableFilterRow, TableHeaderRow, TableSelection } from "@devexpress/dx-react-grid-material-ui";
+import { withStyles } from "@material-ui/core/styles";
+import React from "react";
+import CompareArrows from "@material-ui/icons/CompareArrows";
+import { TooltipTypeProvider, DateTypeProvider, FlagTypeProvider, CurrencyTypeProvider } from "../utilities/dataTypeProviders";
 
-const styles = () => ({ tableStriped: { '& tbody tr:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.08)' } } });
+const styles = () => ({
+	tableStriped: {
+		"& tbody tr:nth-of-type(odd)": {
+			backgroundColor: "rgba(255,255,255,0.08)",
+		},
+	},
+});
 
-const tableComponent = withStyles(styles, { name: 'TableComponent' })(({ classes, ...restProps }) => (
-	<VirtualTable.Table {...restProps} className={classes.tableStriped} />
-));
+const tableComponent = withStyles(styles, {
+	name: "TableComponent",
+})(({ classes, ...restProps }) => <Table.Table {...restProps} className={classes.tableStriped} />);
 
-const rootComponent = props => <Grid.Root {...props} style={{ height: '100%' }} />;
-
-const CurrencyTypeProvider = props => <DataTypeProvider formatterComponent={({ value }) => formatAsCurrency(value)} {...props} />;
-const DateTypeProvider = props => <DataTypeProvider formatterComponent={({ value }) => moment(value).format('YYYY.MM.DD')} {...props} />;
-const FlagTypeProvider = props => (
-	<DataTypeProvider
-		formatterComponent={({ value: flags }) => {
-			return (
-				<Fragment>
-					{Transaction.flagOptions().map(flag => (
-						<Chip key={flag} label={flag.charAt(0)} color="secondary" variant={flags.includes(flag) ? 'default' : 'outlined'} />
-					))}
-				</Fragment>
-			);
-		}}
-		{...props}
-	/>
-);
+const rootComponent = props => <Grid.Root {...props} style={{ height: "100%" }} />;
 
 const FilterIcon = ({ type, ...restProps }) => {
-	if (type === 'between') return <CompareArrows {...restProps} />;
+	if (type === "between") return <CompareArrows {...restProps} />;
 	return <TableFilterRow.Icon type={type} {...restProps} />;
 };
 
 const amountFilter = (value, filter, row) => {
 	if (!filter.value.length) return true;
-	if (filter && filter.operation === 'between') {
-		if (!filter.value.includes('-')) return false;
-		const parts = filter.value.split('-').map(x => +x.trim());
+	if (filter && filter.operation === "between") {
+		if (!filter.value.includes("-")) return false;
+		const parts = filter.value.split("-").map(x => +x.trim());
 		return (parts[0] || -Number.MAX_VALUE) <= value && value <= (parts[1] || Number.MAX_VALUE);
 	}
 	return IntegratedFiltering.defaultPredicate(value, filter, row);
@@ -58,46 +37,50 @@ const amountFilter = (value, filter, row) => {
 
 const dateFilter = (value, filter, row) => {
 	if (!filter.value.length) return true;
-	if (filter && filter.operation === 'between') {
-		if (!filter.value.includes('-')) return false;
-		const parts = filter.value.split('-').map(x => new Date(x).getTime());
-		return (parts[0] || -Number.MAX_VALUE) <= value && value <= (parts[1] || Number.MAX_VALUE);
+	if (filter && filter.operation === "between") {
+		if (!filter.value.includes("-")) return false;
+		const parts = filter.value.split("-").map(x => Date.parse(x));
+		return (parts[0] || -Number.MAX_VALUE) <= +value && +value <= (parts[1] || Number.MAX_VALUE);
 	}
 	const dateFilter = { ...filter };
-	dateFilter.value = new Date(filter.value).getTime();
+	dateFilter.value = new Date(filter.value);
 	return IntegratedFiltering.defaultPredicate(value, dateFilter, row);
 };
 
 const columns = [
-	{ title: 'Account', name: 'account' },
-	{ title: 'Description', name: 'description' },
-	{ title: 'Transaction Date', name: 'transactionDate' },
-	{ title: 'Amount', name: 'amount' },
-	{ title: 'Flags', name: 'flags' }
+	{ title: "Account", name: "account" },
+	{ title: "Description", name: "description" },
+	{ title: "Transaction Date", name: "transactionDate" },
+	{ title: "Amount", name: "amount" },
+	{ title: "Flags", name: "flags" },
 ];
+
 const tableColumnExtensions = [
-	{ columnName: 'amount', align: 'right' },
-	{ columnName: 'flags', align: 'right' },
-	{ columnName: 'transactionDate', align: 'right' }
+	{ columnName: "amount", align: "right" },
+	{ columnName: "flags", align: "right" },
+	{ columnName: "transactionDate", align: "right" },
 ];
-const filterOperations = ['between', 'equal', 'notEqual', 'greaterThan', 'greaterThanOrEqual', 'lessThan', 'lessThanOrEqual'];
+
+const filterOperations = ["between", "equal", "notEqual", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual"];
+
 const filteringColumnExtensions = [
 	{
-		columnName: 'amount',
-		predicate: amountFilter
+		columnName: "amount",
+		predicate: amountFilter,
 	},
 	{
-		columnName: 'transactionDate',
-		predicate: dateFilter
-	}
+		columnName: "transactionDate",
+		predicate: dateFilter,
+	},
 ];
 
 export default props => {
 	return (
 		<Grid rows={props.data} columns={columns} rootComponent={rootComponent}>
-			<CurrencyTypeProvider for={['amount']} availableFilterOperations={filterOperations} />
-			<DateTypeProvider for={['transactionDate']} availableFilterOperations={filterOperations} />
-			<FlagTypeProvider for={['flags']} />
+			<CurrencyTypeProvider for={["amount"]} availableFilterOperations={filterOperations} />
+			<DateTypeProvider for={["transactionDate"]} availableFilterOperations={filterOperations} />
+			<FlagTypeProvider for={["flags"]} availableFilterOperations={["contains", "notContains"]} />
+			<TooltipTypeProvider for={["description"]} />
 
 			<SelectionState selection={props.selection} onSelectionChange={props.onSelectionChange} />
 			<IntegratedSelection />
@@ -108,10 +91,18 @@ export default props => {
 			<FilteringState filters={props.filters} onFiltersChange={props.onFiltersChange} />
 			<IntegratedFiltering columnExtensions={filteringColumnExtensions} />
 
-			<VirtualTable tableComponent={tableComponent} columnExtensions={tableColumnExtensions} />
+			<Table tableComponent={tableComponent} columnExtensions={tableColumnExtensions} />
 			<TableHeaderRow showSortingControls />
-			<TableFilterRow showFilterSelector iconComponent={FilterIcon} messages={{ between: 'Between' }} />
+			<TableFilterRow showFilterSelector iconComponent={FilterIcon} messages={{ between: "Between" }} />
 			<TableSelection showSelectAll />
+			<Template name="root">
+				<TemplateConnector>
+					{({ rows: filteredRows }) => {
+						props.onUpdate(filteredRows);
+						return <TemplatePlaceholder />;
+					}}
+				</TemplateConnector>
+			</Template>
 		</Grid>
 	);
 };

@@ -1,13 +1,8 @@
-import moment from 'moment';
-
-export const colors = {
-	discoverOrange: '#ff5000',
-	bbtRed: '#891635',
-	chaseBlue: '#0f5ba7'
-};
-
 export const formatAsCurrency = number => {
-	return number.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+	return number.toLocaleString("en-US", {
+		style: "currency",
+		currency: "USD",
+	});
 };
 
 export const getRandomSubarray = arr => {
@@ -25,8 +20,8 @@ export const getRandomSubarray = arr => {
 	return shuffled.slice(0, size);
 };
 
-export const randomMoment = () => {
-	return moment(Math.floor(Math.random() * +moment()));
+export const randomDate = () => {
+	return new Date(Math.floor(Math.random() * new Date()));
 };
 
 export const intersection = (...args) => {
@@ -58,4 +53,22 @@ export const intersection = (...args) => {
 		}
 	}
 	return result;
+};
+
+export const convertToCsv = (array, filename) => {
+	const replacer = (_key, value) => (value === null ? "" : value);
+	const header = Object.keys(array[0]);
+	let csv = array.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(";"));
+	csv.unshift(header.join(","));
+	csv = csv.join("\r\n");
+	filename = filename + ".csv" || "export.csv";
+	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+	const link = document.createElement("a");
+	const url = URL.createObjectURL(blob);
+	link.setAttribute("href", url);
+	link.setAttribute("download", filename);
+	link.style.visibility = "hidden";
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
 };
